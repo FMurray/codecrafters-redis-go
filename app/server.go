@@ -30,16 +30,21 @@ func main() {
 }
 
 func handleConnection(c net.Conn) {
-	buff := make([]byte, 1024)
-	_, err := c.Read(buff)
+	buff := make([]byte, 4096)
+	tmp := make([]byte, 1024)
+	for {
+		n, err := c.Read(tmp)
+		if err != nil {
+			fmt.Println("Error reading:", err.Error())
+			os.Exit(1)
+		}
+		fmt.Println("Read:", n)
+		const Ok = "+PONG\r\n"
+		c.Write([]byte(Ok))
+		buff = append(buff, tmp[:n]...)
+	}
 	fmt.Println("Received:", string(buff))
 
-	if err != nil {
-		fmt.Println("Error reading:", err.Error())
-		os.Exit(1)
-	}
 
-	const Ok = "+PONG\r\n"
-	c.Write([]byte(Ok))
 	c.Close()
 }
